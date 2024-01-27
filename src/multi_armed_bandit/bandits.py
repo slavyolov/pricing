@@ -66,6 +66,7 @@ def run_simulation(prices, optimal_price, optimal_probability, a, b, nstep, stra
     avg_reward = 0
     arm_counter = np.zeros_like(prices, dtype=float)
     arm_avg_reward = np.zeros_like(prices, dtype=float)
+    cum_reward = 0
 
     if strategy == "thompson":
         successes = np.zeros_like(prices, dtype=int)
@@ -92,12 +93,34 @@ def run_simulation(prices, optimal_price, optimal_probability, a, b, nstep, stra
         elif strategy == "thompson":
             arm = thompson_sampling(prices, successes, failures, prices)
 
+        # Halfway through the episode, change the probabilities
+        # TODO: we can also change the demand function by adding some noise or something
+        # TODO: this will also change the reward signal
+        drift = False
+        if drift and iteration == int(nstep / 2):
+            print("Probabilities were adjusted")
+            a = 2
+            b = 0.032
+
+            # if b==0 the customer is not sensitive to the price - wil always buy
+            # if b==1 will never buy (this depends on ot the prices ofc)
+
+            from multi_armed_bandit.demand import demand_curve
+            purchase_probabilities = [demand_curve(p, a, b).round(3) for p in prices]
+            print(f"The NEW associated purchase probabilities for the price candidates : {prices} are {purchase_probabilities}")
+
+        # Reward is either 0 or 1 based on the binomial distribution
         reward = get_reward(prices[arm], a, b)
+
         # compute cumulative regret using the known optimal_price
+        # Regret(t) = Optimal Reward (t) - Actual Reward (t)
+        # Where :
+        #   Optimal reward is : optimal_price * optimal_probability
+        #   Actual reward is : selected price by the MAB * reward
         cum_regret[iteration] = cum_regret[iteration - 1] + (optimal_price * optimal_probability - prices[arm] * reward)
 
         if detailed_display:
-            print(f"Iteration {iteration} out of {nstep - 1} - reward {reward} - cumulative regret {cum_regret[iteration]}")
+            print(f"Iteration {iteration} out of {nstep - 1} - reward {prices[arm] * reward} - cumulative regret {cum_regret[iteration]}")
 
         if strategy == "thompson":
             if reward > 0:
@@ -110,6 +133,7 @@ def run_simulation(prices, optimal_price, optimal_probability, a, b, nstep, stra
         reward *= prices[arm]
         arm_avg_reward[arm] = ((arm_counter[arm] - 1) * arm_avg_reward[arm] + reward) / arm_counter[arm]
         avg_reward = ((iteration) * avg_reward + reward) / (iteration + 1)
+        cum_reward += reward
 
         # verify if the reactivity threshold has been hit
         if iteration > 100 and react_counter != 0 and avg_reward >= 0.95 * optimal_price * optimal_probability:
@@ -117,4 +141,13 @@ def run_simulation(prices, optimal_price, optimal_probability, a, b, nstep, stra
             if react_counter == 0:
                 reactivity = iteration + 1
 
-    return cum_regret, reactivity, arm_counter
+    return cum_regret, reactivity, arm_counter, cum_reward
+
+
+#
+# change the reward function
+
+# RL : to construct experiments
+# Can be used to validate the curve
+    # Partially observed process ?
+    # To build different curves ?

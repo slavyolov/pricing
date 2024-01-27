@@ -16,12 +16,12 @@ if __name__ == '__main__':
     # price candidates
     prices = [20, 30, 40, 50, 60]
 
-    nstep = 10000  # Number of time steps for every simulation
-    nepoch = 50  # Number of simulation executions
+    nstep = 100 # 10000  # Number of time steps for every simulation
+    nepoch = 5  # Number of simulation executions
     regret_curves = {}
     # strategies = ["greedy", "epsgreedy", "thompson", "ucb1-0.7-norm"]
-    # strategies = ["epsgreedy", "thompson"]
-    strategies = ["thompson"]
+    strategies = ["epsgreedy", "thompson"]
+    # strategies = ["thompson"]
 
     optimal_price = fsolve(func=revenue_derivative, x0=0, args=(a, b))[0]
     optimal_probability = demand_curve(price=optimal_price, a=a, b=b)
@@ -44,7 +44,7 @@ if __name__ == '__main__':
                 print("=" * 100)
                 print(f"Running epoch {ep} out of {nepoch - 1}")
                 print("=" * 100)
-            regret, reactivity, arm_counter = run_simulation(prices, optimal_price, optimal_probability, a, b, nstep,
+            regret, reactivity, arm_counter, cum_reward = run_simulation(prices, optimal_price, optimal_probability, a, b, nstep,
                                                              strategy=strategy)
             regret_curves[strategy] += regret
             regrets.append(regret[-1])
@@ -59,6 +59,7 @@ if __name__ == '__main__':
         print("Reactivity -> mean: %.2f, median: %.2f, std: %.2f" % (
             np.mean(reactivities), np.median(reactivities), np.std(reactivities)))
         print("Arm allocation -> %s" % (arm_allocation))
+        print("Cumulative reward is : ", cum_reward)
 
     plt.figure(figsize=(12, 6))
     for label in regret_curves:

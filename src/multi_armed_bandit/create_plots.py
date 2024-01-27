@@ -3,8 +3,12 @@ from demand import demand_curve, expected_revenue
 
 
 prices = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-a = [1, 1, 2, 2]
-b = [0.06, 0.04, 0.06, 0.04]
+# prices = [0.49, 0.99, 1.49, 1.99, 2.49, 2.99]
+a = [2]
+b = [0.05]
+# a = [1, 1, 2, 2]
+# b = [0.06, 0.04, 0.06, 0.04]
+# b = [0.1, 0.5, 1, 2]
 
 
 def plot_curves(a, b, plot_coordinates=False):
@@ -67,5 +71,5 @@ def plot_average_expected_revenue(a, b, plot_coordinates=False):
 
 
 if __name__ == '__main__':
-    # plot_curves(a, b)
+    plot_curves(a, b)
     plot_average_expected_revenue(a, b)
