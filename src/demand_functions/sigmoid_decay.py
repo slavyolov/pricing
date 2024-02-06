@@ -78,5 +78,3 @@ def run():
 if __name__ == '__main__':
     run()
     plot_decay_and_derivative()
-
-    # TODO: how to find the values of k

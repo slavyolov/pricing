@@ -4,7 +4,7 @@ from demand import demand_curve, expected_revenue
 
 prices = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 # prices = [0.49, 0.99, 1.49, 1.99, 2.49, 2.99]
-a = [2]
+a = [1.9]
 b = [0.05]
 # a = [1, 1, 2, 2]
 # b = [0.06, 0.04, 0.06, 0.04]

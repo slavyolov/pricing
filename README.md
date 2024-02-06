@@ -5,3 +5,5 @@ pricing experiments
 
 ## Install libraries
 ```pip install -r requirements.txt```
+
+# Execution

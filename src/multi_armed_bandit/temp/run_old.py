@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.optimize import fsolve
 from multi_armed_bandit.demand import demand_curve, revenue_derivative
-from multi_armed_bandit.bandits import run_simulation
+from multi_armed_bandit.temp.bandits_old import run_simulation
 import matplotlib.pyplot as plt
 
 
@@ -20,8 +20,9 @@ if __name__ == '__main__':
     nepoch = 5  # Number of simulation executions
     regret_curves = {}
     # strategies = ["greedy", "epsgreedy", "thompson", "ucb1-0.7-norm"]
-    strategies = ["epsgreedy", "thompson"]
-    # strategies = ["thompson"]
+    # strategies = ["epsgreedy", "thompson"]
+    strategies = ["thompson"]
+    # strategies = ["greedy"]
 
     optimal_price = fsolve(func=revenue_derivative, x0=0, args=(a, b))[0]
     optimal_probability = demand_curve(price=optimal_price, a=a, b=b)

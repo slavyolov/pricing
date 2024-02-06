@@ -1,3 +1,7 @@
+"""
+Pick at random prices from a set of prices
+"""
+
 import numpy as np
 
 
@@ -31,6 +35,16 @@ def sample_from_initial(low, high):
 
 
 def filter_clause(input_arr, base_diff=0.5):
+    """
+    Apply array filter to select prices at random where the i'th element is different from the i'th - 1 element
+
+    Args:
+        input_arr:
+        base_diff:
+
+    Returns:
+
+    """
     filter_arr = []
     for diff in input_arr:
         if diff >= base_diff:
