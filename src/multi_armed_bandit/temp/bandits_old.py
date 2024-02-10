@@ -113,7 +113,7 @@ def run_simulation(prices, optimal_price, optimal_probability, a, b, nstep, stra
             print(f"The NEW associated purchase probabilities for the price candidates : {prices} are {purchase_probabilities}")
 
         # Reward is either 0 or 1 based on the binomial distribution
-        reward = get_reward(prices[arm], a, b)
+        reward = get_reward(prices[arm])
 
         # compute cumulative regret using the known optimal_price
         # Regret(t) = Optimal Reward (t) - Actual Reward (t)

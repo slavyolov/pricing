@@ -41,7 +41,7 @@ def run():
     competitor_price = 14
 
     # Parameters
-    k = 0.1 # TODO: search values between 0.1 and 0.5 (maybe we can select them at random
+    k = 0.1  # TODO: search values between 0.1 and 0.5 (maybe we can select them at random
     x0 = competitor_price  # TODO: to be selected based on the competitors price
 
     # Calculate sigmoid decay for each price

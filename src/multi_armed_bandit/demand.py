@@ -101,24 +101,17 @@ def get_optimal_price(a=0.5, b=0.05):
     return fsolve(revenue_derivative, 0, args=(a, b))[0]
 
 
-def get_reward(price, a=0.5, b=0.05):
+def get_reward(probability):
     """
     The reward is either 0 or 1 based on a Bernoulli distribution whose 'p' depends on the demand curve
 
     Args:
-        price: price value
-        a: the maximum achievable probability of purchase. The value of 'a' stays within the range of [0, 2]
-            this typically stays at a value close to 2 so that when the price is equal to 0 we have a probaility of
-            purchase equal to 1.
-        b: modulates the sensitivity of the demand curve against price changes. Beta value must be taken based on the
-            data so that we have representative curve. Beta could be obtained if we have observed probability and solve
-            the demand equation for beta. See method "multi_armed_bandit.demand.solve_demand_curve" for more details.
+        probability: probability of purchase
 
     Returns:
         Reward value. Either 0 (no purchase made at the current price) or 1 (purchase is made)
     """
-    prob = demand_curve(price, a, b)
-    return bernoulli.rvs(prob)
+    return bernoulli.rvs(probability)
 
 
 def expected_revenue(price, a, b):
