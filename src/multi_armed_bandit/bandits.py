@@ -220,7 +220,6 @@ class MultiArmedBandit:
             max_reward = arm_avg_reward.max()
             arm_norm_reward = arm_avg_reward / max_reward
             # Calculate upper bounds for all arms
-            C = 1
             ucb_values = arm_norm_reward + C * np.sqrt(2 * np.log(total_plays) / arm_counter)
             ucb_values *= max_reward
         else:
