@@ -192,6 +192,19 @@ class MultiArmedBandit:
 
     @staticmethod
     def UCB1(arm_avg_reward, arm_counter, iteration, C=1, normalize=False):
+        """
+        Suitable for Bernoulli bandit problems
+
+        Args:
+            arm_avg_reward:
+            arm_counter:
+            iteration:
+            C:
+            normalize:
+
+        Returns:
+
+        """
         if np.all(arm_avg_reward == 0):
             # if we have not gotten any reward, go random
             arm = np.random.choice(len(arm_avg_reward))
@@ -218,15 +231,3 @@ class MultiArmedBandit:
         # print("ucb_values:", ucb_values)
         # print(f"iteration {iteration}, arm = {np.argmax(ucb_values)} ")
         return np.argmax(ucb_values)
-
-# Arm 1 :
-#
-C = 1
-print(10 + C + np.sqrt(2 * np.log(100) / 10))
-print(10 + C + np.sqrt(2 * np.log(100) / 11))
-
-# Arm 2 :
-print(10 + C + np.sqrt(2 * np.log(100) / 90))
-
-# Fewer visits get an advantage
-# Balancing the exploration and exploitation
