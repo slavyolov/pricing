@@ -9,7 +9,7 @@ from sympy import exp, Eq, Symbol
 from sympy.solvers import solve
 
 
-def demand_curve(price: int, a: float = 0.5, b: float = 0.05):
+def demand_curve(price: float, a: float = 0.5, b: float = 0.05):
     """
     Demand curve is modeled via logistic function that represents the probability of purchase rather than the demand
     directly.

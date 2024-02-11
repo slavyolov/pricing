@@ -1,59 +1,8 @@
-import pandas as pd
-from src.multi_armed_bandit.demand import solve_demand_curve, demand_curve
-from pathlib import Path
+from src.multi_armed_bandit.demand import demand_curve
 from multi_armed_bandit.bandits import MultiArmedBandit
 import numpy as np
-from src.multi_armed_bandit.sample_prices import sample_from_initial
 from matplotlib import pyplot as plt
-
-
-check_probabilities = True
-
-
-def get_prices(alpha):
-    # TODO: maybe put this into a function get prices or class
-    # Read data
-    path = str(Path(Path(__file__).parents[2], "data/input/sales.csv"))
-    df = pd.read_csv(path)
-
-    # Get the average conversion rate per price (this is the probability of selling on average)
-    avg_proba_observed = df.groupby("price")["conversion_rate"].agg("mean").values
-
-    # product cost (this defines the minimum price for our problem. Below this value we are generating loses)
-    product_costs = 5.0
-
-    # get the prices from the observed data
-    prices = df["price"].sort_values().unique()
-
-    # Solve the demand equation for beta taking the midpoint of the probabilities
-    midpoint_proba_observed = avg_proba_observed[1]
-    beta = solve_demand_curve(price=np.median(prices), alpha=alpha, prob=midpoint_proba_observed)
-    print("Beta coefficient:", beta)
-
-    if check_probabilities:
-        purchase_probabilities = [demand_curve(price=price, a=alpha, b=beta).round(3) for price in prices]
-        print(f"Observed purchase probabilities : ", list(avg_proba_observed.round(3)))
-        print(f"Observed data standard deviation : ",
-              list(df.groupby("price")["conversion_rate"].agg("std").values.round(3)))
-        print(f"Estimated purchase probabilities using beta = {beta} : ", purchase_probabilities)
-
-    # Expand the price set to enable the MAB to test for other prices when searching for the best one
-    # Get 10 prices (including the original 3)
-    break_even_price = np.array([product_costs])
-    wave_1 = sample_from_initial(low=5.25, high=7.25)  # At least .25 cents diff from min_possible and min_observed
-    wave_2 = sample_from_initial(low=7.75, high=9.75)  # At least .25 cents diff between 7.5 and 10
-
-    new_prices = np.concatenate((break_even_price, wave_1, wave_2, prices))
-    new_prices.sort()
-    new_prices = list(new_prices)
-
-    # Sanity check (prices and probabilities)
-    if check_probabilities:
-        purchase_probabilities = [demand_curve(price=price, a=alpha, b=beta).round(3) for price in prices]
-        print(f"Estimated purchase probabilities using beta = {beta} on new set of prices : ", purchase_probabilities)
-
-    return new_prices, beta
-
+import pprint
 
 def min_max_scaling(data):
     min_val = np.min(data)
@@ -63,20 +12,21 @@ def min_max_scaling(data):
 
 
 if __name__ == "__main__":
+    # Input parameters :
     # Set the max probability at 95% to address the chance of missing the offer even if the price is equal to 0
     alpha = 1.9
-    prices, beta = get_prices(alpha=alpha)
+    prices = [5.0, 5.31, 6.17, 6.86, 7.5, 7.81, 8.71, 9.34, 10.0, 11.0]
+    beta = 0.171411
+    n_steps = 20000
+    n_epochs = 100
+
+    drift = False  # For the non-stationary run (set this to True)
+    change_at_step = n_steps / 2  # in case we want to add drift
+
+    detailed_display = True
 
     # Get the probabilities
     purchase_probabilities = [demand_curve(p, a=alpha, b=beta).round(4) for p in prices]
-
-    # Test the solution
-    test = True
-    if test == True:
-        alpha = 2
-        beta = 0.042
-        prices = [20, 30, 40, 50, 60]
-        purchase_probabilities = [demand_curve(p, a=alpha, b=beta).round(4) for p in prices]
 
     # Run the simulation :
     regret_curves = {}
@@ -85,17 +35,12 @@ if __name__ == "__main__":
         "eps_greedy-0.1",
         "eps_greedy-0.2",
         "thompson",
-        "ucb1-0.7-norm",
         "ucb1-1-norm",
         "ucb1-1"
     ]
-    n_steps = 100
-    n_epochs = 3
-    detailed_display = True
-    change_at_step = n_steps / 2  # in case we want to add drift
     bandit = MultiArmedBandit(prices=prices, alpha=alpha, beta=beta, n_steps=n_steps, n_epochs=n_epochs,
                               purchase_proba=purchase_probabilities,
-                              drift=False,
+                              drift=drift,
                               change_at_step=change_at_step
                               )
 
@@ -128,12 +73,11 @@ if __name__ == "__main__":
         print("Arm allocation Static -> %s" % (100 * arm_counter_static / change_at_step))
         print("Arm allocation Drift -> %s" % (100 * arm_counter_drift / change_at_step))
         print("Cumulative reward is : ", cum_reward)
-        # TODO: arm allocation until the change and after the change
 
         statistics[strategy] = {
-            "arm_allocation": arm_allocation,
-            "arm_counter_static": arm_counter_static,
-            "arm_counter_drift": arm_counter_drift,
+            "arm_allocation": arm_allocation.tolist(),
+            "arm_allocation_static": (100 * arm_counter_static / change_at_step).tolist(),
+            "arm_allocation_drift": (100 * arm_counter_drift / change_at_step).tolist(),
             "mean_regret": np.mean(regrets),
             "median_regret": np.median(regrets),
             "std_regret": np.std(regrets),
@@ -148,7 +92,8 @@ if __name__ == "__main__":
     cmap = plt.get_cmap('plasma')
     for ix, label in enumerate(regret_curves):
         plt.plot(regret_curves[label], label=label, color=cmap(ix / (len(regret_curves) - 1)))
-    plt.axvline(x=change_at_step, color='r', linestyle='--', label="Probabilities change")
+    if drift:
+        plt.axvline(x=change_at_step, color='r', linestyle='--', label="Probabilities change")
     plt.xlabel("Time Step")
     plt.ylabel("Cumulative Regret")
     plt.title("Cumulative Regret Comparison")
@@ -174,21 +119,10 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.show()
 
+    print("Run statistics")
+    print(pprint.pprint(statistics, indent=4, width=120, compact=True))
     print("Simulation done!")
 
-    # TODO: store the arm_allocation to file (txt file or smth) and call later for plotting in the jobs section
-    # # Second Round
-    # arm_allocations = [
-    #     [34.39607, 24.89851, 20.40018, 12.10207, 8.20317],  # greedy
-    #     [12.1732, 64.81001, 17.89838, 2.89369, 2.22472],    # epsgreedy
-    #     [4.85504, 69.37921, 19.35197, 4.37928, 2.0345],     # thompson
-    #     [8.26354, 76.07635, 13.34003, 1.75242, 0.56766]     # ucb1-0.7-norm
-    # ]
-    #
-    #
-    # # Plotting
-    # plot_arm_allocations(arm_allocations)
-
     # Get the arm allocations
-    for key, value in statistics.items():
-        print(value["arm_allocation"])
+    # for key, value in statistics.items():
+    #     print(value["arm_allocation"])
