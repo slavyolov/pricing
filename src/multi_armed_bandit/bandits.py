@@ -91,9 +91,17 @@ class MultiArmedBandit:
                 # going to be 6
                 ix_ = np.where(np.array(self.prices) <= self.competitor_prices[0])[0]
                 optimal_price = self.prices[ix_.max()]
-                optimal_probability = demand_curve(price=optimal_price, a=self.alpha, b=self.beta)
+                optimal_probability = probabilities[ix_.max()]
                 print(f"Purchase Probabilities were adjusted at episode {iteration} to : {probabilities}")
                 print(F"The new optimal price is : {optimal_price}")
+                print(F"The new optimal probability is : {optimal_probability}")
+
+                # reset reward
+                reset_reward = False
+                if reset_reward:
+                    arm_avg_reward = np.zeros_like(self.prices, dtype=float)
+                    successes = np.zeros_like(self.prices, dtype=int)
+                    failures = np.zeros_like(self.prices, dtype=int)
 
             # Reward is either 0 or 1 based on the binomial distribution
             reward = get_reward(probabilities[arm])
@@ -103,7 +111,6 @@ class MultiArmedBandit:
             # Where :
             #   Optimal reward is : optimal_price * optimal_probability
             #   Actual reward is : selected price by the MAB * reward
-            # TODO : CHECK THE self.optimal_price * self.optimal_probability (class param or not ? Maybe probs will update this)
             cum_regret[iteration] = cum_regret[iteration - 1] + (optimal_price * optimal_probability -
                                                                  self.prices[arm] * reward)
 

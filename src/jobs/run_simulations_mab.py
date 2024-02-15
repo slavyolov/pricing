@@ -3,6 +3,11 @@ from multi_armed_bandit.bandits import MultiArmedBandit
 import numpy as np
 from matplotlib import pyplot as plt
 import pprint
+import time
+
+
+np.set_printoptions(suppress=True)
+
 
 def min_max_scaling(data):
     min_val = np.min(data)
@@ -12,15 +17,18 @@ def min_max_scaling(data):
 
 
 if __name__ == "__main__":
+    # Log the processing time
+    start_time = time.time()
+
     # Input parameters :
     # Set the max probability at 95% to address the chance of missing the offer even if the price is equal to 0
     alpha = 1.9
     prices = [5.0, 5.31, 6.17, 6.86, 7.5, 7.81, 8.71, 9.34, 10.0, 11.0]
     beta = 0.171411
-    n_steps = 20000
+    n_steps = 15000
     n_epochs = 100
 
-    drift = False  # For the non-stationary run (set this to True)
+    drift = True  # For the non-stationary run (set this to True)
     change_at_step = n_steps / 2  # in case we want to add drift
 
     detailed_display = True
@@ -35,7 +43,9 @@ if __name__ == "__main__":
         "eps_greedy-0.1",
         "eps_greedy-0.2",
         "thompson",
+        "ucb1-0.5-norm",
         "ucb1-1-norm",
+        "ucb1-1.5-norm",
         "ucb1-1"
     ]
     bandit = MultiArmedBandit(prices=prices, alpha=alpha, beta=beta, n_steps=n_steps, n_epochs=n_epochs,
@@ -50,6 +60,9 @@ if __name__ == "__main__":
         regrets = []
         reactivities = []
         arm_counters = np.zeros((len(prices),))
+        arm_counters_static = np.zeros((len(prices),))
+        arm_counters_drift = np.zeros((len(prices),))
+
         for ep in range(n_epochs):
             if detailed_display:
                 print("=" * 100)
@@ -61,17 +74,21 @@ if __name__ == "__main__":
             regrets.append(regret[-1])
             reactivities.append(reactivity)
             arm_counters += arm_counter / n_steps
+            arm_counters_static += arm_counter_static / change_at_step
+            arm_counters_drift += arm_counter_drift / change_at_step
             print(f"Epoch {ep} out of {n_epochs - 1} completed")
 
         regret_curves[strategy] /= n_epochs
         arm_allocation = 100 * arm_counters / n_epochs
+        arm_allocation_static = 100 * arm_counters_static / n_epochs
+        arm_allocation_drift = 100 * arm_counters_drift / n_epochs
         print("-------------\nStrategy: %s" % strategy)
         print("Regret -> mean: %.2f, median: %.2f, std: %.2f" % (np.mean(regrets), np.median(regrets), np.std(regrets)))
         print("Reactivity -> mean: %.2f, median: %.2f, std: %.2f" % (
             np.mean(reactivities), np.median(reactivities), np.std(reactivities)))
         print("Arm allocation -> %s" % (arm_allocation))
-        print("Arm allocation Static -> %s" % (100 * arm_counter_static / change_at_step))
-        print("Arm allocation Drift -> %s" % (100 * arm_counter_drift / change_at_step))
+        print("Arm allocation Static -> %s" % (arm_allocation_static))
+        print("Arm allocation Drift -> %s" % (arm_allocation_drift))
         print("Cumulative reward is : ", cum_reward)
 
         statistics[strategy] = {
@@ -120,7 +137,8 @@ if __name__ == "__main__":
     plt.show()
 
     print("Run statistics")
-    print(pprint.pprint(statistics, indent=4, width=120, compact=True))
+    print(pprint.pprint(statistics, width=120, compact=True))
+    print("--- %s minutes ---" % (time.time() - start_time))
     print("Simulation done!")
 
     # Get the arm allocations

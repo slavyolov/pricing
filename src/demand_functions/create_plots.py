@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from demand import demand_curve, expected_revenue
+from multi_armed_bandit.demand import demand_curve, expected_revenue
 
 
 prices = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -10,6 +10,18 @@ b = [0.05]
 # b = [0.06, 0.04, 0.06, 0.04]
 # b = [0.1, 0.5, 1, 2]
 
+
+a = [
+    # 1,
+    # 1.9,
+    #  1.9,
+    1.9]
+prices = [0, 5.0, 5.31, 6.17, 6.86, 7.5, 7.81, 8.71, 9.34, 10.0, 11.0, 20.0]
+b = [
+    # 0.15,
+    # 0.07,
+    # 0.1,
+    0.17]
 
 def plot_curves(a, b, plot_coordinates=False):
     """
