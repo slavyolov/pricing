@@ -93,8 +93,8 @@ if __name__ == "__main__":
 
         statistics[strategy] = {
             "arm_allocation": arm_allocation.tolist(),
-            "arm_allocation_static": (100 * arm_counter_static / change_at_step).tolist(),
-            "arm_allocation_drift": (100 * arm_counter_drift / change_at_step).tolist(),
+            "arm_allocation_static": arm_allocation_static.tolist(),
+            "arm_allocation_drift": arm_allocation_drift.tolist(),
             "mean_regret": np.mean(regrets),
             "median_regret": np.median(regrets),
             "std_regret": np.std(regrets),
